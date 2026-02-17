@@ -26,6 +26,20 @@ use Minishlink\WebPush\MessageSentReport;
 use Minishlink\WebPush\Subscription;
 use Minishlink\WebPush\WebPush;
 use Psr\Log\LoggerInterface;
+use GuzzleHttp\Client;
+
+// Internet proxy
+$client = null;
+
+$proxyFile = __DIR__ . '/../proxy.php';
+
+if (file_exists($proxyFile)) {
+    $proxyConfig = require $proxyFile;
+
+    $client = new Client([
+        'proxy' => $proxyConfig,
+    ]);
+}
 
 class PushSender
 {
@@ -107,7 +121,7 @@ class PushSender
 
         $this->log("[PWA PUSH] Attempting to send $sendingCounter notifications.\n\n");
 
-        $webPush = new WebPush($auth, $options);
+        $webPush = new WebPush($auth, $options, $client);
         $webPush->setReuseVAPIDHeaders(true);
         $webPush->setAutomaticPadding(false);
 
