@@ -145,7 +145,6 @@ class PushSender
             $response = $report->getResponse();
 
             if (! $report->isSuccess()) {
-
                 // If response exist
                 if ($response && in_array($response->getStatusCode(), [401, 403, 404, 410])) {
                     PushSubscription::where('endpoint', $endpoint)->delete();
