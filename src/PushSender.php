@@ -127,15 +127,29 @@ class PushSender
          * @var MessageSentReport $report
          */
         foreach ($webPush->flush() as $report) {
-            if (! $report->isSuccess() && in_array($report->getResponse()->getStatusCode(), [401, 403, 404, 410])) {
-                PushSubscription::where('endpoint', $report->getEndpoint())->delete();
-            } elseif (! $report->isSuccess()) {
-                $this->log("[PWA PUSH] Message failed to sent for subscription {$report->getEndpoint()}: {$report->getReason()}");
-            } else {
-                $subscription = PushSubscription::where('endpoint', $report->getEndpoint())->first();
+            $endpoint = $report->getEndpoint();
+            $response = $report->getResponse();
+        
+            if (! $report->isSuccess()) {
+        
+                // 有 HTTP 响应的情况
+                if ($response && in_array($response->getStatusCode(), [401, 403, 404, 410])) {
+                    PushSubscription::where('endpoint', $endpoint)->delete();
+                    $this->log("[PWA PUSH] Subscription removed due to status {$response->getStatusCode()} for $endpoint");
+                } else {
+                    // 网络级错误（response 为 null）
+                    $reason = $report->getReason() ?? 'Unknown error';
+                    $this->log("[PWA PUSH] Transport-level failure for $endpoint: $reason");
+                }
+        
+                continue;
+            }
+        
+            // 成功情况
+            $subscription = PushSubscription::where('endpoint', $endpoint)->first();
+            if ($subscription) {
                 $subscription->last_used = Carbon::now();
                 $subscription->save();
-                $sentCounter++;
             }
         }
 
