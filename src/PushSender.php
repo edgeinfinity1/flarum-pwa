@@ -146,12 +146,12 @@ class PushSender
         
             if (! $report->isSuccess()) {
         
-                // 有 HTTP 响应的情况
+                // If response exist
                 if ($response && in_array($response->getStatusCode(), [401, 403, 404, 410])) {
                     PushSubscription::where('endpoint', $endpoint)->delete();
                     $this->log("[PWA PUSH] Subscription removed due to status {$response->getStatusCode()} for $endpoint");
                 } else {
-                    // 网络级错误（response 为 null）
+                    // Cannot reach
                     $reason = $report->getReason() ?? 'Unknown error';
                     $this->log("[PWA PUSH] Transport-level failure for $endpoint: $reason");
                 }
