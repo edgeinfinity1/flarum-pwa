@@ -164,6 +164,7 @@ class PushSender
             if ($subscription) {
                 $subscription->last_used = Carbon::now();
                 $subscription->save();
+                $sentCounter++;
             }
         }
 
