@@ -19,6 +19,7 @@ use Flarum\Http\UrlGenerator;
 use Flarum\Notification\Blueprint\BlueprintInterface;
 use Flarum\Settings\SettingsRepositoryInterface;
 use Flarum\User\User;
+use GuzzleHttp\Client;
 use Illuminate\Contracts\Filesystem\Cloud;
 use Illuminate\Contracts\Filesystem\Factory;
 use Illuminate\Support\Arr;
@@ -26,12 +27,11 @@ use Minishlink\WebPush\MessageSentReport;
 use Minishlink\WebPush\Subscription;
 use Minishlink\WebPush\WebPush;
 use Psr\Log\LoggerInterface;
-use GuzzleHttp\Client;
 
 // Internet proxy
 $client = null;
 
-$proxyFile = __DIR__ . '/../proxy.php';
+$proxyFile = __DIR__.'/../proxy.php';
 
 if (file_exists($proxyFile)) {
     $proxyConfig = require $proxyFile;
@@ -143,9 +143,9 @@ class PushSender
         foreach ($webPush->flush() as $report) {
             $endpoint = $report->getEndpoint();
             $response = $report->getResponse();
-        
+
             if (! $report->isSuccess()) {
-        
+
                 // If response exist
                 if ($response && in_array($response->getStatusCode(), [401, 403, 404, 410])) {
                     PushSubscription::where('endpoint', $endpoint)->delete();
@@ -155,10 +155,10 @@ class PushSender
                     $reason = $report->getReason() ?? 'Unknown error';
                     $this->log("[PWA PUSH] Transport-level failure for $endpoint: $reason");
                 }
-        
+
                 continue;
             }
-        
+
             // 成功情况
             $subscription = PushSubscription::where('endpoint', $endpoint)->first();
             if ($subscription) {
